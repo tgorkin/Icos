@@ -1,4 +1,26 @@
 #################
+## Unity
+#################
+Temp/
+Obj/
+UnityGenerated/
+Library/
+
+#################
+## MonoDevelop
+#################
+ExportedObj/
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
+*.unityproj
+*.booproj
+
+#################
 ## Eclipse
 #################
 
