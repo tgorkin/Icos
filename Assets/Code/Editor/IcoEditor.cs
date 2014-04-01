@@ -9,8 +9,11 @@ public class IcoEditor : Editor {
 		bool dirty = false;
 
 		Icosahedron ico = target as Icosahedron;
+
+		ico.Size = EditorGUILayout.FloatField (ico.Size);
+
 		int currentSubdivisions = ico.NumSubdivisions;
-		ico.NumSubdivisions = EditorGUILayout.IntSlider ("Subdivisions", ico.NumSubdivisions, 0, 20); 
+		ico.NumSubdivisions = EditorGUILayout.IntSlider ("Subdivisions", ico.NumSubdivisions, 0, 30); 
 		if (ico.NumSubdivisions != currentSubdivisions) {
 			dirty = true;
 		}

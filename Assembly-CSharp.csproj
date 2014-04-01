@@ -49,7 +49,6 @@
      <Compile Include="Assets\Code\CameraController.cs" />
      <Compile Include="Assets\Code\Hex.cs" />
      <Compile Include="Assets\Code\HexChunk.cs" />
-     <Compile Include="Assets\Code\HexGlobals.cs" />
      <Compile Include="Assets\Code\HexMap.cs" />
      <Compile Include="Assets\Code\IcoFace.cs" />
      <Compile Include="Assets\Code\Icosahedron.cs" />

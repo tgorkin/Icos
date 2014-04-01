@@ -4,65 +4,102 @@ using System.Collections;
 [RequireComponent(typeof(MeshFilter))]
 public class HexChunk : MonoBehaviour {
 
-	public int rSize = 10;
-	public int qSize = 10;
+	public float Size;
+	public Vector3 Center;
+	public Vector3 North;
+	public Vector3 FaceNormal;
+	public float SphereRadius;
+	public float SphereExpansionFactor = 1f;	
+
+	private Vector3[] _vertices;
+	private int[] _indices;
+	private Vector3[] _normals;
+	private Vector2[] _uvs;
+
+	private Vector3 _origin;
+	private Vector3 _normal;
 
 	// Use this for initialization
 	void Start () {
-		int totalNumVerts = rSize * qSize * HexGlobals.NUM_VERTS_PER_HEX;
-		int totalIndices = rSize * qSize * HexGlobals.NUM_INDICES_PER_HEX;
+		int totalNumVerts = 7;
+		int totalIndices = 18;
 
-		Vector3[] vertices = new Vector3[ totalNumVerts ];
-		int[] indices = new int[ totalIndices ];
-		Vector3[] normals = new Vector3[ totalNumVerts ];
-		Vector2[] uvs = new Vector2[ totalNumVerts ];
+		_vertices = new Vector3[ totalNumVerts ];
+		_indices = new int[ totalIndices ];
+		_normals = new Vector3[ totalNumVerts ];
+		_uvs = new Vector2[ totalNumVerts ];
 
-		for( int q=0; q < qSize; q++) {
-			for (int r=0; r < rSize; r++) {
-				CreateHexMesh( r, q, ref vertices, ref indices, ref normals, ref uvs );
-			}
-		}
+		_origin = transform.parent.position;
+
+		this.transform.position = Center;
+		this._normal = FaceNormal;
+		this.transform.rotation = Quaternion.LookRotation (_normal, North);
+
+		CreateHexMesh();
+		Expand ();
 
 		MeshFilter meshComp = GetComponent<MeshFilter> ();
 		Mesh mesh = new Mesh ();
 		meshComp.mesh = mesh;
-		mesh.vertices = vertices;
-		mesh.triangles = indices;
-		mesh.normals = normals;
-		mesh.uv = uvs;
+		mesh.vertices = _vertices;
+		mesh.triangles = _indices;
+		mesh.normals = _normals;
+		mesh.uv = _uvs;
 	}
 
-	private void CreateHexMesh(int r, int q, ref Vector3[] vertices, ref int[] indices, ref Vector3[] normals, ref Vector2[] uvs ) {
-		int axialOffset = (q * rSize + r);
-		int vertOffset = axialOffset * HexGlobals.NUM_VERTS_PER_HEX;
-		int indexOffset = axialOffset * HexGlobals.NUM_INDICES_PER_HEX;
+	private void CreateHexMesh() {
 
+		int vertOffset = 0;
 		float x, y, angle;
-		float centerX = r * HexGlobals.HorzDistance + q * HexGlobals.Width/2f;
-		float centerY = q * HexGlobals.VertDistance;
-		vertices[vertOffset] = new Vector3(centerX, centerY, 0);
+		_vertices[vertOffset++] = new Vector3(0, 0, 0);
 		for(int i=0; i < 6; i++) {
-			angle = 2f * Mathf.PI / 6f * (i + 0.5f);
-			x = centerX + HexGlobals.Size * Mathf.Cos(angle);
-			y = centerY + HexGlobals.Size * Mathf.Sin(angle);
-			vertices[vertOffset+i+1] = new Vector3(x, y, 0);
+			angle = 2f * Mathf.PI / 6f * i;
+			x = Size * Mathf.Cos(angle);
+			y = Size * Mathf.Sin(angle);
+			_vertices[vertOffset++] = new Vector3(x, y, 0);
+		}
+		vertOffset = 0;
+
+		int indexOffset = 0;
+		for(int i=0; i < 6; i++) {
+			_indices[indexOffset++] = vertOffset;
+			_indices[indexOffset++] = (i % 6) + 1 + vertOffset;
+			_indices[indexOffset++] = ((i+1) % 6) + 1 + vertOffset;
 		}
 
-
-		int tempIndexOffset = indexOffset;
-		for(int i=0; i < 6; i++) {
-			indices[tempIndexOffset++] = vertOffset;
-			indices[tempIndexOffset++] = ((i+1) % 6) + 1 + vertOffset;
-			indices[tempIndexOffset++] = (i % 6) + 1 + vertOffset;
-		}
-
+		vertOffset = 0;
 		for (int i=0; i < 7; i++) {
-			normals[vertOffset+i] = Vector3.up;
+			_normals[vertOffset++] = Vector3.up;
 		}
 
-		uvs [vertOffset] = new Vector2 (0, 0);
+		vertOffset = 0;
+		_uvs [vertOffset++] = new Vector2 (0, 0);
 		for (int i=1; i < 7; i++) {
-			uvs[vertOffset+i] = new Vector2(1f, 0);
+			_uvs[vertOffset++] = new Vector2(1f, 0);
 		}
+	}
+
+	private void Expand() {
+
+		Vector3[] worldVerts = new Vector3[_vertices.Length];
+		for (int i=0, n=_vertices.Length; i < n; i++) {
+			worldVerts[i] = gameObject.transform.TransformPoint( _vertices[i] );
+			worldVerts[i] = Vector3.Slerp(worldVerts[i], worldVerts[i].normalized * SphereRadius, SphereExpansionFactor);
+		}
+
+		this.transform.position = Vector3.Slerp(Center, Center.normalized * SphereRadius, SphereExpansionFactor);
+		Vector3 sphereNormal = (Center - transform.parent.position).normalized;
+		_normal = Vector3.Slerp (FaceNormal, sphereNormal, SphereExpansionFactor);
+		this.transform.rotation = Quaternion.LookRotation (_normal, North);
+
+		for (int i=0, n=_vertices.Length; i < n; i++) {
+			_vertices[i] = gameObject.transform.InverseTransformPoint( worldVerts[i] ); 
+		}
+	}
+
+	private Vector3 ExpandToSphere(Vector3 point) {
+		point = gameObject.transform.TransformPoint( point );
+		point = Vector3.Slerp(point, point.normalized * SphereRadius, SphereExpansionFactor);
+		return gameObject.transform.InverseTransformPoint( point);
 	}
 }

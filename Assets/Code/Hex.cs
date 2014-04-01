@@ -1,18 +1,18 @@
 using System;
 using UnityEngine;
 
-public class Hex {
+public class Hex : MonoBehaviour {
 
 	public Vector3 Center;
 
-	public Vector3 A;
-	public Vector3 B;
-	public Vector3 C;
-	public Vector3 D;
-	public Vector3 E;
-	public Vector3 F;
+	public int R;
+	public int Q;
 
-	public Hex ()
-	{
-	}
+	Terrain Terrain;
+	
+}
+
+public enum Terrain {
+	Water,
+	Land
 }

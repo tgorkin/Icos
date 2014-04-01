@@ -9,6 +9,9 @@ public class IcoFaceEditor : Editor {
 		bool dirty = false;
 
 		IcoFace face = target as IcoFace;
+
+		face.HexChunk = EditorGUILayout.ObjectField (face.HexChunk, typeof(GameObject), false, null) as GameObject;
+
 		int currentSubdivisions = face.NumSubdivisions;
 		face.NumSubdivisions = EditorGUILayout.IntSlider ("Subdivisions", face.NumSubdivisions, 0, 20); 
 		if (face.NumSubdivisions != currentSubdivisions) {

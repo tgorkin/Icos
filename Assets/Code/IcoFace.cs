@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 public class IcoFace : MonoBehaviour {
@@ -9,8 +10,11 @@ public class IcoFace : MonoBehaviour {
 	public Vector3 B;
 	public Vector3 C;
 
-	public int NumSubdivisions = 5; // max 300
+	public GameObject HexChunk;
 
+	public int NumSubdivisions; // max 300
+
+	private float _sphereRadius;
 	public float SphereExpansionFactor = 1f;
 
 	Vector3[] _vertices;
@@ -18,15 +22,20 @@ public class IcoFace : MonoBehaviour {
 	Vector3[] _normals;
 	Vector2[] _uvs;
 
-	private Hex[][] _tiles;
+	float _hexSize;
+	Vector3 _faceNormal;
+	Vector2 _faceUp;
+
+	private List<Hex> _hexes = new List<Hex>();
 
 	void Start() {
 		RefreshFace ();
 	}
 
 	public void RefreshFace() {
-		Subdivide ();
-		CreateMesh ();
+		ClearMesh ();
+		SubdivideHexes ();
+		//CreateMesh ();
 	}
 
 	private void CreateMesh() {
@@ -37,6 +46,60 @@ public class IcoFace : MonoBehaviour {
 		mesh.triangles = _indices;
 		mesh.normals = _normals;
 		mesh.uv = _uvs;
+	}
+
+	private void ClearMesh() {
+		for (int i=0, n=transform.childCount; i < n; i++) {
+			GameObject.Destroy(transform.GetChild(i).gameObject);
+		}
+	}
+
+	private void SubdivideHexes() {
+		/*
+		 * int numHexes = ((int)Math.Pow (NumSubdivisions + 1, 2) - 3) / 6;
+		int numVerts = numHexes * 7;
+		_vertices = new Vector3[numVerts];		
+		_normals = new Vector3[numVerts];
+		_uvs = new Vector2[numVerts];
+		_indices = new int[3*6*numHexes];
+		*/
+
+		_sphereRadius = A.magnitude;
+
+		Vector3 edge0 = B - A;
+		Vector3 edge1 = C - A;
+		Vector3 edge2 = C - B;
+
+		Vector3 vertical = edge0 + (0.5f * edge2);
+		vertical = vertical * 1f / (float)(NumSubdivisions+1);
+		Vector3 horizontal = edge2 * 1f / (float)(NumSubdivisions+1);
+
+		_hexSize = edge0.magnitude / (NumSubdivisions + 1);
+
+		_faceNormal = Vector3.Cross (edge1, edge0).normalized;
+
+		Vector3 vertAxis = edge0 * 1f / (float)(NumSubdivisions+1);
+		Vector3 horAxis = edge2 * 1f / (float)(NumSubdivisions+1);
+		for (int vertIter=2; vertIter < NumSubdivisions+1; vertIter++) {
+			int hexCenterIter = (3 - (vertIter%3))%3;
+			for(int horIter=1; horIter < vertIter; horIter++) {
+				if( horIter % 3 == hexCenterIter && !(vertIter == NumSubdivisions+1 && horIter == NumSubdivisions+1)) {
+					CreateHex( A + vertIter * vertAxis + horIter *horAxis, vertical);
+				}
+			}
+		}
+	}
+
+	private void CreateHex(Vector3 center, Vector3 up) {
+		GameObject hexGO = GameObject.Instantiate( HexChunk ) as GameObject;
+		HexChunk hexChunk = hexGO.GetComponent<HexChunk> ();
+		hexChunk.Size = _hexSize;
+		hexChunk.Center = center;
+		hexChunk.North = up;
+		hexChunk.FaceNormal = _faceNormal;
+		hexChunk.SphereRadius = _sphereRadius;
+		hexChunk.SphereExpansionFactor = SphereExpansionFactor;
+		hexChunk.transform.parent = this.transform;
 	}
 
 	private void Subdivide() {
@@ -124,5 +187,19 @@ public class IcoFace : MonoBehaviour {
 
 	private int SeriesSum(int n) {
 		return n * (n + 1) / 2;
+	}
+
+	void OnDrawGizmos() {
+		// Draw a yellow sphere at the transform's position
+		Gizmos.color = Color.red;
+		Gizmos.DrawLine (A, B);
+		Gizmos.color = Color.green;
+		Gizmos.DrawLine (A, C);
+		Gizmos.color = Color.blue;
+		Gizmos.DrawLine (B, C);
+		Gizmos.color = Color.magenta;
+		Gizmos.DrawLine (B + ((C - B) / 2), A);
+		//Gizmos.color = Color.grey;
+		//Gizmos.DrawCube (A, new Vector3 (1f, 1f, 1f));
 	}
 }

@@ -12,7 +12,7 @@ public class Icosahedron : MonoBehaviour {
 
 	public float SphereExpansionFactor = 1f;
 
-	public int NumSubdivisions = 5;
+	public int NumSubdivisions;
 
 	void Start() {
 		// http://answers.yahoo.com/question/index?qid=20080108041441AAJCjEu
@@ -37,6 +37,7 @@ public class Icosahedron : MonoBehaviour {
 		Vector3 V12 = new Vector3 (-1 * s * c1, -1 * c, s * s1);
 
 		CreateIcoFace (V1, V2, V3);
+
 		CreateIcoFace (V1, V3, V4);
 		CreateIcoFace (V1, V4, V5);
 		CreateIcoFace (V1, V5, V6);
@@ -58,6 +59,7 @@ public class Icosahedron : MonoBehaviour {
 		CreateIcoFace (V8, V4, V12);
 		CreateIcoFace (V4, V3, V12);
 		CreateIcoFace (V12, V3, V11);
+
 	}
 
 	private void CreateIcoFace( Vector3 a, Vector3 b, Vector3 c ) {
@@ -66,6 +68,7 @@ public class Icosahedron : MonoBehaviour {
 		icoFace.A = a;
 		icoFace.B = b;
 		icoFace.C = c;
+		icoFace.NumSubdivisions = NumSubdivisions;
 		face.transform.parent = this.transform;
 		_faces.Add (icoFace);
 	}
