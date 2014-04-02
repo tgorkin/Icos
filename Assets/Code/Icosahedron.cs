@@ -69,6 +69,7 @@ public class Icosahedron : MonoBehaviour {
 		icoFace.B = b;
 		icoFace.C = c;
 		icoFace.NumSubdivisions = NumSubdivisions;
+		icoFace.SphereExpansionFactor = SphereExpansionFactor;
 		face.transform.parent = this.transform;
 		_faces.Add (icoFace);
 	}

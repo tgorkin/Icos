@@ -10,7 +10,8 @@ public class IcoFaceEditor : Editor {
 
 		IcoFace face = target as IcoFace;
 
-		face.HexChunk = EditorGUILayout.ObjectField (face.HexChunk, typeof(GameObject), false, null) as GameObject;
+		face.HexTile = EditorGUILayout.ObjectField (face.HexTile, typeof(GameObject), false, null) as GameObject;
+		face.TrapezoidTile = EditorGUILayout.ObjectField (face.TrapezoidTile, typeof(GameObject), false, null) as GameObject;
 
 		int currentSubdivisions = face.NumSubdivisions;
 		face.NumSubdivisions = EditorGUILayout.IntSlider ("Subdivisions", face.NumSubdivisions, 0, 20); 

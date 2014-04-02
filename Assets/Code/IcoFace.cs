@@ -10,7 +10,8 @@ public class IcoFace : MonoBehaviour {
 	public Vector3 B;
 	public Vector3 C;
 
-	public GameObject HexChunk;
+	public GameObject HexTile;
+	public GameObject TrapezoidTile;
 
 	public int NumSubdivisions; // max 300
 
@@ -24,7 +25,7 @@ public class IcoFace : MonoBehaviour {
 
 	float _hexSize;
 	Vector3 _faceNormal;
-	Vector2 _faceUp;
+	Vector3 _faceUp;
 
 	private List<Hex> _hexes = new List<Hex>();
 
@@ -35,6 +36,7 @@ public class IcoFace : MonoBehaviour {
 	public void RefreshFace() {
 		ClearMesh ();
 		SubdivideHexes ();
+		//Subdivide ();
 		//CreateMesh ();
 	}
 
@@ -71,7 +73,7 @@ public class IcoFace : MonoBehaviour {
 		Vector3 edge2 = C - B;
 
 		Vector3 vertical = edge0 + (0.5f * edge2);
-		vertical = vertical * 1f / (float)(NumSubdivisions+1);
+		_faceUp = vertical * 1f / (float)(NumSubdivisions+1);
 		Vector3 horizontal = edge2 * 1f / (float)(NumSubdivisions+1);
 
 		_hexSize = edge0.magnitude / (NumSubdivisions + 1);
@@ -84,18 +86,38 @@ public class IcoFace : MonoBehaviour {
 			int hexCenterIter = (3 - (vertIter%3))%3;
 			for(int horIter=1; horIter < vertIter; horIter++) {
 				if( horIter % 3 == hexCenterIter && !(vertIter == NumSubdivisions+1 && horIter == NumSubdivisions+1)) {
-					CreateHex( A + vertIter * vertAxis + horIter *horAxis, vertical);
+					CreateHex( A + vertIter * vertAxis + horIter *horAxis);
 				}
+			}
+		}
+
+		for (int vertIter=2; vertIter < NumSubdivisions+1; vertIter++) {
+			if( vertIter % 3 == 0) {
+				CreateTrapezoid( A + vertIter * vertAxis, global::TrapezoidTile.Alignment.Right );
+				CreateTrapezoid( A + vertIter * vertAxis + vertIter * horAxis, global::TrapezoidTile.Alignment.Left );
 			}
 		}
 	}
 
-	private void CreateHex(Vector3 center, Vector3 up) {
-		GameObject hexGO = GameObject.Instantiate( HexChunk ) as GameObject;
-		HexChunk hexChunk = hexGO.GetComponent<HexChunk> ();
+	private void CreateHex(Vector3 center) {
+		GameObject hexGO = GameObject.Instantiate( HexTile ) as GameObject;
+		HexTile hexChunk = hexGO.GetComponent<HexTile> ();
 		hexChunk.Size = _hexSize;
 		hexChunk.Center = center;
-		hexChunk.North = up;
+		hexChunk.North = _faceUp;
+		hexChunk.FaceNormal = _faceNormal;
+		hexChunk.SphereRadius = _sphereRadius;
+		hexChunk.SphereExpansionFactor = SphereExpansionFactor;
+		hexChunk.transform.parent = this.transform;
+	}
+
+	private void CreateTrapezoid(Vector3 center, TrapezoidTile.Alignment Alignment) {
+		GameObject hexGO = GameObject.Instantiate( TrapezoidTile ) as GameObject;
+		TrapezoidTile hexChunk = hexGO.GetComponent<TrapezoidTile> ();
+		hexChunk.Align = Alignment;
+		hexChunk.Size = _hexSize;
+		hexChunk.Center = center;
+		hexChunk.North = _faceUp;
 		hexChunk.FaceNormal = _faceNormal;
 		hexChunk.SphereRadius = _sphereRadius;
 		hexChunk.SphereExpansionFactor = SphereExpansionFactor;
